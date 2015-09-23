@@ -1,5 +1,10 @@
 <?php
 
+	// Loon andmebaasi ühenduse
+	require_once("../config.php");
+	$database= "if15_mats_3";
+	$mysqli = new mysqli($servername, $username, $password, $database);
+
   // muuutujad errorite jaoks
 	$email_error = "";
 	$password_error = "";
@@ -60,13 +65,24 @@
 					$create_password = cleanInput($_POST["create_password"]);
 				}
 			}
-
+		
 			if(	$create_email_error == "" && $create_password_error == ""){
-				echo "Võib kasutajat luua! Kasutajanimi on ".$create_email." ja parool on ".$create_password;
-      }
+				
+				//räsi loomine
+				
+				$hash = hash("sha512", $create_password);
+				
+				echo "Võib kasutajat luua! Kasutajanimi on ".$create_email." ja parool on ".$create_password."ja räsi on".$hash;
+				
+				$stmt = $mysqli->prepare("INSERT INTO user_sample (email,password) VALUES (?,?)");
+				//asendame ? märgid, ss -s on string email, s on string password
+				$stmt->bind_param("ss", $create_email, $hash);
+				$stmt->execute();
+				$stmt->close();
+			}
 
-    } // create if end
-
+		} // create if end
+	
 	}
 
   // funktsioon, mis eemaldab kõikvõimaliku üleliigse tekstist
@@ -77,6 +93,8 @@
   	return $data;
   }
 
+	// Paneme ühenduse kinni
+	$mysqli->close();
 ?>
 <!DOCTYPE html>
 <html>
